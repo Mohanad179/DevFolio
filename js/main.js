@@ -1,4 +1,4 @@
-// Change these words to customize the animated title in the hero section.
+// hero section changing title
 const roleWords = ["Frontend Developer", "Web Developer", "Software Engineer"];
 const typedText = document.querySelector("#typedText");
 let wordIndex = 0;
@@ -74,10 +74,48 @@ const counterObserver = new IntersectionObserver((entries, observer) => {
 counters.forEach((counter) => counterObserver.observe(counter));
 
 // This is a front-end demo only; it does not transmit form data anywhere.
-const contactForm = document.querySelector("#contactForm");
-const formNotice = document.querySelector("#formNotice");
-contactForm?.addEventListener("submit", (event) => {
+
+const contactForm = document.getElementById("contactForm");
+const formNotice = document.getElementById("formNotice");
+
+contactForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  formNotice.textContent = "The form is working on the front end, but messages are not sent. Connect a backend or form service to receive them.";
-  formNotice.classList.add("text-primary");
+
+  const submitButton = contactForm.querySelector(
+    'button[type="submit"]'
+  );
+
+  const originalButtonText = submitButton.textContent;
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Sending...";
+  formNotice.textContent = "";
+
+  try {
+    const response = await fetch(
+      "https://api.web3forms.com/submit",
+      {
+        method: "POST",
+        body: new FormData(contactForm),
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.ok && result.success) {
+      formNotice.textContent =
+        "Your message has been sent successfully!";
+
+      contactForm.reset();
+    } else {
+      formNotice.textContent =
+        result.message || "Failed to send your message. Please try again.";
+    }
+  } catch (error) {
+    formNotice.textContent =
+      "Something went wrong. Please check your connection and try again.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalButtonText;
+  }
 });
